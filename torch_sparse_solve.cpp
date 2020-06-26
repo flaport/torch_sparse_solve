@@ -11,8 +11,8 @@ torch::Tensor solve_forward(torch::Tensor A, torch::Tensor b){
 }
 
 std::vector<torch::Tensor> solve_backward(torch::Tensor grad, torch::Tensor A, torch::Tensor b, torch::Tensor x){
-    auto gradb = at::transpose(solve_forward(at::transpose(A, -1, -2), grad), -1, -2);
-    auto gradA = -torch::bmm(at::transpose(gradb, -1, -2), at::transpose(x, -1, -2));
+    auto gradb = solve_forward(at::transpose(A, -1, -2), grad);
+    auto gradA = -torch::bmm(gradb, at::transpose(x, -1, -2));
     return {gradA, gradb};
 }
 
