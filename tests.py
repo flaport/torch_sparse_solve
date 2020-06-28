@@ -16,7 +16,7 @@ def gen():
 
 
 @pytest.fixture
-def W(gen):
+def A(gen):
     """ default weight tensor """
     return torch.randn(4, 3, 3, dtype=torch.float64, requires_grad=True, generator=gen)
 
@@ -27,41 +27,27 @@ def b(gen):
     return torch.randn(4, 3, 2, dtype=torch.float64, generator=gen)
 
 
-def test_gradcheck(W, b):
+def test_gradcheck(A, b):
     """ check if backward grads are correct """
-    torch.autograd.gradcheck(torch_sparse_solve.solve, [W.double(), b.double()])
+    torch.autograd.gradcheck(torch_sparse_solve.solve, [A, b])
 
 
-def test_result(W, b):
+def test_result(A, b):
     """ confirm result """
-    x = torch_sparse_solve.solve(W, b)
-    b2 = torch.bmm(W, x)
+    x = torch_sparse_solve.solve(A, b)
+    b2 = torch.bmm(A, x)
     numpy.testing.assert_almost_equal(
         b2.data.cpu().numpy(), b.data.cpu().numpy(),
     )
 
 
-def test_cuda_result(W, b):
-    """ confirm result """
-    if not torch.cuda.is_available():
-        pytest.skip("no CUDA available")
-    test_result(W.cuda(), b.cuda())
-
-
-def test_comparison_with_torch_solve(W, b):
+def test_comparison_with_torch_solve(A, b):
     """ compare with dense torch.solve """
-    x_sparse = torch_sparse_solve.solve(W, b)
-    x_dense = torch.solve(b, W)[0]
+    x_sparse = torch_sparse_solve.solve(A, b)
+    x_dense = torch.solve(b, A)[0]
     numpy.testing.assert_almost_equal(
         x_sparse.data.cpu().numpy(), x_dense.data.cpu().numpy()
     )
-
-
-def test_cuda_comparison_with_torch_solve(W, b):
-    """ compare with dense torch.solve """
-    if not torch.cuda.is_available():
-        pytest.skip("no CUDA available")
-    test_comparison_with_torch_solve(W.cuda(), b.cuda())
 
 
 def test_coo_to_csc():
@@ -86,11 +72,11 @@ def test_coo_to_csc():
     assert (Ax == ax).all()
 
 
-def test_sparse_solver(W, b):
-    target = torch.solve(b, W)[0][0, :, 0]
+def test_sparse_solver(A, b):
+    target = torch.solve(b, A)[0][0, :, 0]
     result = b[0, :, 0].clone()
-    Wp, Wi, Wx = torch_sparse_solve_cpp._coo_to_csc(W[0].to_sparse())
-    torch_sparse_solve_cpp._sparse_solve(Wp, Wi, Wx, result)
+    Ap, Ai, Ax = torch_sparse_solve_cpp._coo_to_csc(A[0].to_sparse())
+    torch_sparse_solve_cpp._klu_solve(Ap, Ai, Ax, result)
     assert (target - result < 1e-5).all()
 
 
