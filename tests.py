@@ -87,21 +87,11 @@ def test_coo_to_csc():
 
 
 def test_sparse_solver(W, b):
-    pytest.skip("test_sparse_solver failing.")
-    W_np = W[0].data.cpu().numpy()
-    b_np = W[0, :, 0].data.cpu().numpy()
-    x_np = b_np.copy()
-    W_sp = scipy.sparse.csc_matrix(W_np)
-    Wp = W_sp.indptr
-    Wi = W_sp.indices
-    Wx = W_sp.data
-    n = Wp.size - 1
-    c_Wp = numpy.ctypeslib.as_ctypes(Wp)
-    c_Wi = numpy.ctypeslib.as_ctypes(Wi)
-    c_Wx = numpy.ctypeslib.as_ctypes(Wx)
-    c_b = numpy.ctypeslib.as_ctypes(x_np)
-    torch_sparse_solve_cpp._sparse_solve(n, c_Wp, c_Wi, c_Wx, c_b)
-    assert (W_np @ x_np - b_np < 1e-5).all()
+    target = torch.solve(b, W)[0][0, :, 0]
+    result = b[0, :, 0].clone()
+    Wp, Wi, Wx = torch_sparse_solve_cpp._coo_to_csc(W[0].to_sparse())
+    torch_sparse_solve_cpp._sparse_solve(Wp, Wi, Wx, result)
+    assert (target - result < 1e-5).all()
 
 
 if __name__ == "__main__":

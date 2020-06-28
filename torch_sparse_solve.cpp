@@ -18,18 +18,34 @@ std::vector<at::Tensor> solve_backward(at::Tensor grad, at::Tensor A, at::Tensor
     return {gradA, gradb};
 }
 
+void _sparse_solve(torch::Tensor Ap, torch::Tensor Ai, torch::Tensor Ax, torch::Tensor b) { // from github.com/kagami-c/PyKLU
+    int n_col = at::size(Ap, 0) - 1;
+    int* ap = Ap.data_ptr<int>();
+    int* ai = Ai.data_ptr<int>();
+    double* ax = Ax.data_ptr<double>();
+    double* bb = b.data_ptr<double>();
+    klu_symbolic* Symbolic;
+    klu_numeric* Numeric;
+    klu_common Common;
+    klu_defaults(&Common);
+    Symbolic = klu_analyze(n_col, ap, ai, &Common);
+    Numeric = klu_factor(ap, ai, ax, Symbolic, &Common);
+    klu_solve(Symbolic, Numeric, 5, 1, bb, &Common);
+    klu_free_symbolic(&Symbolic, &Common);
+    klu_free_numeric(&Numeric, &Common);
+}
+
 std::vector<at::Tensor> _coo_to_csc(at::Tensor A){ // based on https://github.com/scipy/scipy/blob/3b36a57/scipy/sparse/sparsetools/coo.h#L34
-    A = A.coalesce();
     at::Tensor Ax = A.values();
     int nnz = Ax.size(0);
     int n_col = A.size(1);
 
     at::Tensor indices = A.indices();
-    at::Tensor Ai = indices[0];
-    at::Tensor Aj = indices[1];
+    at::Tensor Ai = at::_cast_Int(indices[0]);
+    at::Tensor Aj = at::_cast_Int(indices[1]);
 
-    auto options = torch::TensorOptions().dtype(torch::kInt64).device(at::device_of(Ai));
-    at::Tensor Bp = at::zeros(nnz+1, options);
+    auto options = torch::TensorOptions().dtype(torch::kInt32).device(at::device_of(Ai));
+    at::Tensor Bp = at::zeros(n_col+1, options);
     at::Tensor Bi = at::zeros_like(Ai);
     at::Tensor Bx = at::zeros_like(Ax);
 
@@ -66,21 +82,7 @@ std::vector<at::Tensor> _coo_to_csc(at::Tensor A){ // based on https://github.co
         at::fill_(last, temp);
     }
 
-
     return {Bp, Bi, Bx};
-}
-
-int _sparse_solve(int n, int* Ap, int* Ai, double* Ax, double* b) { // from github.com/kagami-c/PyKLU
-    klu_symbolic* Symbolic;
-    klu_numeric* Numeric;
-    klu_common Common;
-    klu_defaults(&Common);
-    Symbolic = klu_analyze(n, Ap, Ai, &Common);
-    Numeric = klu_factor(Ap, Ai, Ax, Symbolic, &Common);
-    klu_solve(Symbolic, Numeric, 5, 1, b, &Common);
-    klu_free_symbolic(&Symbolic, &Common);
-    klu_free_numeric(&Numeric, &Common);
-    return 0;
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
