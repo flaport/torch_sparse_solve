@@ -19,7 +19,7 @@ Installation only confirmed on linux for now.
 
 ```bash
 conda install suitesparse
-python setup.py install
+pip install torch-sparse-solve
 ```
 
 ## Usage
