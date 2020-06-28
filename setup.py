@@ -35,7 +35,7 @@ torch_sparse_solve_cpp = Extension(
 )
 
 setup(
-    name="torch_sparse_solve_cpp",
+    name="torch_sparse_solve",
     version=torch_sparse_solve.__version__,
     author=torch_sparse_solve.__author__,
     author_email="floris.laporte@gmail.com",

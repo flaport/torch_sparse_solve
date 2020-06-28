@@ -1,7 +1,6 @@
 """ A sparse KLU solver for PyTorch """
 
 import torch
-import torch_sparse_solve_cpp
 
 __version__ = "0.0.1"
 __author__ = "Floris Laporte"
@@ -34,14 +33,18 @@ class Solve(torch.autograd.Function):
             raise ValueError("'A' should be a sparse float64 tensor.")
         if not b.dtype == torch.float64:
             raise ValueError("'b' should be a float64 tensor.")
-        x = torch_sparse_solve_cpp.forward(A, b)
+        from torch_sparse_solve_cpp import forward
+
+        x = forward(A, b)
         ctx.save_for_backward(A, b, x)
         return x
 
     @staticmethod
     def backward(ctx, grad):
         A, b, x = ctx.saved_tensors
-        gradA, gradb = torch_sparse_solve_cpp.backward(grad, A, b, x)
+        from torch_sparse_solve_cpp import backward
+
+        gradA, gradb = backward(grad, A, b, x)
         return gradA, gradb
 
 
