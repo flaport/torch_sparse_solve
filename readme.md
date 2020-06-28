@@ -29,13 +29,16 @@ system `Ax=b` for `torch.float64` tensors:
 
 ```python
 import torch
+torch.manual_seed(42)
 from torch_sparse_solve import solve
 A = torch.randn(4, 5, 5, dtype=torch.float64)
-A[A<-0.2] = 0 # enforce sparse matrix
 b = torch.randn(4, 5, 2, dtype=torch.float64)
+A[A<-0.2] = 0 # enforce sparse matrix
+A = A.to_sparse()
 x = solve(A, b)
 
 # compare to torch.solve:
+A = A.to_dense()
 print( (x - torch.solve(b, A)[0] < 1e-5).all() )
 ```
 

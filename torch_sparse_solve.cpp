@@ -14,8 +14,8 @@ at::Tensor solve_forward(at::Tensor A, at::Tensor b) {
     int n = at::size(b, 2);
     at::Tensor bflat = at::clone(at::reshape(at::transpose(b, 1, 2), {p, m*n}));
     for (int i = 0; i < p; i++) {
-        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(A[i].to_sparse());
-        _klu_solve(Ap_Ai_Ax[0], Ap_Ai_Ax[1], Ap_Ai_Ax[2], bflat[i]); /* result will be in bflat */
+        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(A[i].coalesce());
+        _klu_solve(Ap_Ai_Ax[0], Ap_Ai_Ax[1], Ap_Ai_Ax[2], bflat[i]); // result will be in bflat
     }
     return at::transpose(bflat.view({p,n,m}), 1, 2);
 }

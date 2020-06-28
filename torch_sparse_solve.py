@@ -5,12 +5,16 @@ import torch_sparse_solve_cpp
 class Solve(torch.autograd.Function):
     @staticmethod
     def forward(ctx, A, b):
-        if A.ndim != 3 or (A.shape[1] != A.shape[2]):
+        if A.ndim != 3 or (A.shape[1] != A.shape[2]) or not A.is_sparse:
             raise ValueError(
-                "A should be a batch of square 2D matrices with shape (b, m, m)"
+                "'A' should be a batch of square 2D sparse matrices with shape (b, m, m)."
             )
         if b.ndim != 3:
-            raise ValueError("b should be a batch of matrices with shape (b, m, n)")
+            raise ValueError("'b' should be a batch of matrices with shape (b, m, n).")
+        if not A.dtype == torch.float64:
+            raise ValueError("'A' should be a sparse float64 tensor.")
+        if not b.dtype == torch.float64:
+            raise ValueError("'b' should be a float64 tensor.")
         x = torch_sparse_solve_cpp.forward(A, b)
         ctx.save_for_backward(A, b, x)
         return x
