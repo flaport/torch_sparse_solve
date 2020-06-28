@@ -1,5 +1,24 @@
+""" A sparse KLU solver for PyTorch """
+
 import torch
 import torch_sparse_solve_cpp
+
+__version__ = "0.0.1"
+__author__ = "Floris Laporte"
+__all__ = ["solve"]
+
+
+def solve(A, b):
+    """ solve a sparse system Ax = b
+
+    Args:
+        A (torch.sparse.Tensor[b, m, m]): the sparse matrix defining the system.
+        b (torch.Tensor[b, m, n]): the target matrix b
+
+    Returns:
+        x (torch.Tensor[b, m, n]): the initially unknown matrix x
+    """
+    return Solve.apply(A, b)
 
 
 class Solve(torch.autograd.Function):
@@ -25,8 +44,6 @@ class Solve(torch.autograd.Function):
         gradA, gradb = torch_sparse_solve_cpp.backward(grad, A, b, x)
         return gradA, gradb
 
-
-solve = Solve.apply
 
 if __name__ == "__main__":
     A = torch.randn(2, 3, 3, requires_grad=True)
