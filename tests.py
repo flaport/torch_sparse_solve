@@ -18,7 +18,9 @@ def gen():
 @pytest.fixture
 def A(gen):
     """ default weight tensor """
-    return torch.randn(4, 3, 3, dtype=torch.float64, requires_grad=True, generator=gen)
+    return torch.randn(
+        4, 3, 3, dtype=torch.float64, requires_grad=True, generator=gen
+    ).to_sparse()
 
 
 @pytest.fixture
@@ -29,13 +31,13 @@ def b(gen):
 
 def test_gradcheck(A, b):
     """ check if backward grads are correct """
-    torch.autograd.gradcheck(torch_sparse_solve.solve, [A, b])
+    torch.autograd.gradcheck(torch_sparse_solve.solve, [A, b], check_sparse_nnz=True)
 
 
 def test_result(A, b):
     """ confirm result """
     x = torch_sparse_solve.solve(A, b)
-    b2 = torch.bmm(A, x)
+    b2 = torch.bmm(A.to_dense(), x)
     numpy.testing.assert_almost_equal(
         b2.data.cpu().numpy(), b.data.cpu().numpy(),
     )
@@ -44,7 +46,7 @@ def test_result(A, b):
 def test_comparison_with_torch_solve(A, b):
     """ compare with dense torch.solve """
     x_sparse = torch_sparse_solve.solve(A, b)
-    x_dense = torch.solve(b, A)[0]
+    x_dense = torch.solve(b, A.to_dense())[0]
     numpy.testing.assert_almost_equal(
         x_sparse.data.cpu().numpy(), x_dense.data.cpu().numpy()
     )
@@ -73,9 +75,9 @@ def test_coo_to_csc():
 
 
 def test_sparse_solver(A, b):
-    target = torch.solve(b, A)[0][0, :, 0]
+    target = torch.solve(b, A.to_dense())[0][0, :, 0]
     result = b[0, :, 0].clone()
-    Ap, Ai, Ax = torch_sparse_solve_cpp._coo_to_csc(A[0].to_sparse())
+    Ap, Ai, Ax = torch_sparse_solve_cpp._coo_to_csc(A[0].coalesce())
     torch_sparse_solve_cpp._klu_solve(Ap, Ai, Ax, result)
     assert (target - result < 1e-5).all()
 

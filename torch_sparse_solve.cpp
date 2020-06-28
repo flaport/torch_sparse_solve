@@ -22,7 +22,7 @@ at::Tensor solve_forward(at::Tensor A, at::Tensor b) {
 
 std::vector<at::Tensor> solve_backward(at::Tensor grad, at::Tensor A, at::Tensor b, at::Tensor x) {
     at::Tensor gradb = solve_forward(at::transpose(A, -1, -2), grad);
-    at::Tensor gradA = -at::bmm(gradb, at::transpose(x, -1, -2));
+    at::Tensor gradA = (-at::bmm(gradb, at::transpose(x, -1, -2))).to_sparse();
     return {gradA, gradb};
 }
 
