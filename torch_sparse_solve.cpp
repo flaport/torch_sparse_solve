@@ -40,7 +40,7 @@ void _klu_solve(at::Tensor Ap, at::Tensor Ai, at::Tensor Ax, at::Tensor b) { // 
         klu_defaults(&Common);
         Symbolic = klu_analyze(n_col, ap, ai, &Common);
         Numeric = klu_factor(ap, ai, ax, Symbolic, &Common);
-        klu_solve(Symbolic, Numeric, 5, 1, &bb[i], &Common);
+        klu_solve(Symbolic, Numeric, n_col, 1, &bb[i], &Common);
         klu_free_symbolic(&Symbolic, &Common);
         klu_free_numeric(&Numeric, &Common);
     }
