@@ -34,13 +34,19 @@ torch_sparse_solve_cpp = Extension(
     language="c++",
 )
 
+long_description = (
+    torch_sparse_solve.__doc__
+    if not os.path.exists("readme.md")
+    else open("readme.md", "r").read()
+)
+
 setup(
     name="torch_sparse_solve",
     version=torch_sparse_solve.__version__,
     author=torch_sparse_solve.__author__,
     author_email="floris.laporte@gmail.com",
     description=torch_sparse_solve.__doc__,
-    long_description=open("readme.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/flaport/torch_sparse_solve",
     py_modules=["torch_sparse_solve"],
