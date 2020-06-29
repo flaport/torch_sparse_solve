@@ -5,19 +5,16 @@ from torch.utils import cpp_extension
 
 import torch_sparse_solve
 
-conda = os.path.dirname(os.path.dirname(os.path.dirname(os.__file__)))
-folders = glob.glob(os.path.join(conda, "pkgs", "suitesparse-*"))
-folders = [folder for folder in folders if not folder.endswith(".conda")]
-suitesparse = sorted(folders)[-1]  # latest version if multiple installed.
+usrdir = os.path.dirname(os.path.dirname(os.path.dirname(os.__file__)))
 
 torch_sparse_solve_cpp = Extension(
     name="torch_sparse_solve_cpp",
     sources=["torch_sparse_solve.cpp"],
     include_dirs=[
         *cpp_extension.include_paths(),
-        os.path.join(suitesparse, "include"),
+        os.path.join(usrdir, "include"),
     ],
-    library_dirs=[*cpp_extension.library_paths(), os.path.join(suitesparse, "lib"),],
+    library_dirs=[*cpp_extension.library_paths(), os.path.join(usrdir, "lib"),],
     extra_compile_args=[],
     libraries=[
         "c10",
