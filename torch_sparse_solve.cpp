@@ -60,37 +60,46 @@ std::vector<at::Tensor> _coo_to_csc(at::Tensor A) { // based on https://github.c
     at::Tensor Bi = at::zeros_like(Ai);
     at::Tensor Bx = at::zeros_like(Ax);
 
+    int* ai = Ai.data_ptr<int>();
+    int* aj = Aj.data_ptr<int>();
+    double* ax = Ax.data_ptr<double>();
+
+    int* bp = Bp.data_ptr<int>();
+    int* bi = Bi.data_ptr<int>();
+    double* bx = Bx.data_ptr<double>();
+
+
     //compute number of non-zero entries per row of A
     for (int n = 0; n < nnz; n++) {
-        Bp[Aj[n]] += 1;
+        bp[aj[n]] += 1;
     }
 
     //cumsum the nnz per row to get Bp
-    at::Tensor cumsum = at::zeros_like(Bp[0]);
-    at::Tensor temp = at::zeros_like(Bp[0]);
+    int cumsum = 0;
+    int temp = 0;
     for(int j = 0; j < n_col; j++) {
-        at::fill_(temp, Bp[j]);
-        Bp[j] = cumsum;
-        at::fill_(cumsum, cumsum + temp);
+        temp = bp[j];
+        bp[j] = cumsum;
+        cumsum += temp;
     }
-    Bp[n_col] = nnz;
+    bp[n_col] = nnz;
 
     //write Ai, Ax into Bi, Bx
-    at::Tensor col = at::zeros_like(Aj[0]);
-    at::Tensor dest = at::zeros_like(Bp[0]);
+    int col = 0;
+    int dest = 0;
     for(int n = 0; n < nnz; n++) {
-        at::fill_(col, Aj[n]);
-        at::fill_(dest, Bp[col]);
-        Bi[dest] = Ai[n];
-        Bx[dest] = Ax[n];
-        Bp[col] = Bp[col] + 1;
+        col = aj[n];
+        dest = bp[col];
+        bi[dest] = ai[n];
+        bx[dest] = ax[n];
+        bp[col] += 1;
     }
 
-    at::Tensor last = at::zeros_like(temp);
+    int last = 0;
     for(int i = 0; i <= n_col; i++) {
-        at::fill_(temp, Bp[i]);
-        Bp[i] = last;
-        at::fill_(last, temp);
+        temp = bp[i];
+        bp[i] = last;
+        last = temp;
     }
 
     return {Bp, Bi, Bx};
