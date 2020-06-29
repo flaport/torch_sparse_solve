@@ -17,9 +17,9 @@ def gen():
 
 @pytest.fixture
 def A(gen):
-    """ default weight tensor """
-    A = torch.randn(4, 3, 3, dtype=torch.float64, generator=gen)
-    A[A < -0.3] = 0
+    """ default batched sparse tensor """
+    mask = torch.tensor([[[1, 0, 0], [1, 1, 0], [0, 0, 1]]], dtype=torch.float64)
+    A = mask * torch.randn(4, 3, 3, dtype=torch.float64, generator=gen)
     Asp = A.to_sparse()
     Asp.requires_grad_()
     return Asp

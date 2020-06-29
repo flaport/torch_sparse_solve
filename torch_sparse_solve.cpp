@@ -12,14 +12,12 @@ at::Tensor solve_forward(at::Tensor A, at::Tensor b) {
     int p = at::size(b, 0);
     int m = at::size(b, 1);
     int n = at::size(b, 2);
-    at::Tensor Asp, Ax, Ai, Aj;
     at::Tensor bflat = at::clone(at::reshape(at::transpose(b, 1, 2), {p, m*n}));
+    at::Tensor Ax = at::reshape(A._values(), {p, -1});
+    at::Tensor Ai = at::reshape(at::_cast_Int(A._indices()[1]), {p, -1});
+    at::Tensor Aj = at::reshape(at::_cast_Int(A._indices()[2]), {p, -1});
     for (int i = 0; i < p; i++) {
-        Asp = A[i];
-        Ax = Asp._values();
-        Ai = at::_cast_Int(Asp._indices()[0]);
-        Aj = at::_cast_Int(Asp._indices()[1]);
-        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(m, Ai, Aj, Ax);
+        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(m, Ai[i], Aj[i], Ax[i]);
         _klu_solve(Ap_Ai_Ax[0], Ap_Ai_Ax[1], Ap_Ai_Ax[2], bflat[i]); // result will be in bflat
     }
     return at::transpose(bflat.view({p,n,m}), 1, 2);
@@ -105,8 +103,8 @@ std::vector<at::Tensor> _coo_to_csc(int ncol, at::Tensor Ai, at::Tensor Aj, at::
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("forward",     &solve_forward,  "solve forward");
-    m.def("backward",    &solve_backward, "solve backward");
+    m.def("solve_forward",     &solve_forward,  "solve forward");
+    m.def("solve_backward",    &solve_backward, "solve backward");
     m.def("_klu_solve",  &_klu_solve,     "sparse solve");
     m.def("_coo_to_csc", &_coo_to_csc,    "COO to CSC");
 }
