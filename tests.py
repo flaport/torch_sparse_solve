@@ -60,8 +60,12 @@ def test_coo_to_csc():
         dtype=torch.float64,
         device="cpu",
     )
+    Asp = A.to_sparse()
+    Ai = Asp._indices()[0].int()
+    Aj = Asp._indices()[1].int()
+    Ax = Asp._values()
 
-    Ap, Aj, Ax = torch_sparse_solve_cpp._coo_to_csc(A.to_sparse())
+    Ap, Aj, Ax = torch_sparse_solve_cpp._coo_to_csc(A.size(1), Ai, Aj, Ax)
     Ap = Ap.data.cpu().numpy()
     Aj = Aj.data.cpu().numpy()
     Ax = Ax.data.cpu().numpy()
@@ -79,7 +83,10 @@ def test_coo_to_csc():
 def test_sparse_solver(A, b):
     target = torch.solve(b, A.to_dense())[0][0, :, 0]
     result = b[0, :, 0].clone()
-    Ap, Ai, Ax = torch_sparse_solve_cpp._coo_to_csc(A[0].coalesce())
+    Ai = A[0]._indices()[0].int()
+    Aj = A[0]._indices()[1].int()
+    Ax = A[0]._values()
+    Ap, Ai, Ax = torch_sparse_solve_cpp._coo_to_csc(A[0].size(1), Ai, Aj, Ax)
     torch_sparse_solve_cpp._klu_solve(Ap, Ai, Ax, result)
     assert (target - result < 1e-5).all()
 
