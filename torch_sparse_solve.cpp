@@ -33,17 +33,15 @@ void _klu_solve(at::Tensor Ap, at::Tensor Ai, at::Tensor Ax, at::Tensor b) { // 
     int* ai = Ai.data_ptr<int>();
     double* ax = Ax.data_ptr<double>();
     double* bb = b.data_ptr<double>();
-    for (int i = 0; i < n_b; i+= n_col) {
-        klu_symbolic* Symbolic;
-        klu_numeric* Numeric;
-        klu_common Common;
-        klu_defaults(&Common);
-        Symbolic = klu_analyze(n_col, ap, ai, &Common);
-        Numeric = klu_factor(ap, ai, ax, Symbolic, &Common);
-        klu_solve(Symbolic, Numeric, n_col, 1, &bb[i], &Common);
-        klu_free_symbolic(&Symbolic, &Common);
-        klu_free_numeric(&Numeric, &Common);
-    }
+    klu_symbolic* Symbolic;
+    klu_numeric* Numeric;
+    klu_common Common;
+    klu_defaults(&Common);
+    Symbolic = klu_analyze(n_col, ap, ai, &Common);
+    Numeric = klu_factor(ap, ai, ax, Symbolic, &Common);
+    klu_solve(Symbolic, Numeric, n_col, n_b/n_col, bb, &Common);
+    klu_free_symbolic(&Symbolic, &Common);
+    klu_free_numeric(&Numeric, &Common);
 }
 
 std::vector<at::Tensor> _coo_to_csc(at::Tensor A) { // based on https://github.com/scipy/scipy/blob/3b36a57/scipy/sparse/sparsetools/coo.h#L34
