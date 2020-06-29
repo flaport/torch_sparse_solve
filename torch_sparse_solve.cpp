@@ -14,7 +14,7 @@ at::Tensor solve_forward(at::Tensor A, at::Tensor b) {
     int n = at::size(b, 2);
     at::Tensor bflat = at::clone(at::reshape(at::transpose(b, 1, 2), {p, m*n}));
     for (int i = 0; i < p; i++) {
-        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(A[i].coalesce());
+        std::vector<at::Tensor> Ap_Ai_Ax = _coo_to_csc(A[i]);
         _klu_solve(Ap_Ai_Ax[0], Ap_Ai_Ax[1], Ap_Ai_Ax[2], bflat[i]); // result will be in bflat
     }
     return at::transpose(bflat.view({p,n,m}), 1, 2);
@@ -45,11 +45,11 @@ void _klu_solve(at::Tensor Ap, at::Tensor Ai, at::Tensor Ax, at::Tensor b) { // 
 }
 
 std::vector<at::Tensor> _coo_to_csc(at::Tensor A) { // based on https://github.com/scipy/scipy/blob/3b36a57/scipy/sparse/sparsetools/coo.h#L34
-    at::Tensor Ax = A.values();
+    at::Tensor Ax = A._values();
     int nnz = Ax.size(0);
     int n_col = A.size(1);
 
-    at::Tensor indices = A.indices();
+    at::Tensor indices = A._indices();
     at::Tensor Ai = at::_cast_Int(indices[0]);
     at::Tensor Aj = at::_cast_Int(indices[1]);
 
