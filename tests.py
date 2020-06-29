@@ -18,9 +18,11 @@ def gen():
 @pytest.fixture
 def A(gen):
     """ default weight tensor """
-    return torch.randn(
-        4, 3, 3, dtype=torch.float64, requires_grad=True, generator=gen
-    ).to_sparse()
+    A = torch.randn(4, 3, 3, dtype=torch.float64, generator=gen)
+    A[A < -0.3] = 0
+    Asp = A.to_sparse()
+    Asp.requires_grad_()
+    return Asp
 
 
 @pytest.fixture
