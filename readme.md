@@ -15,11 +15,10 @@ worth doing the GPU→CPU conversion.
 
 ## Installation
 
-Installation only confirmed on linux for now.
+So far, wheels only exist for Python 3.7 on Windows and Linux:
 
 ```bash
-conda install suitesparse
-pip install torch-sparse-solve
+pip install torch_sparse_solve
 ```
 
 ## Usage
@@ -59,6 +58,37 @@ There are two major caveats you should be aware of when using
   2. **OR** loop over the batch dimension and solve sequentially, i.e.
      with shapes `(1, m, m)` and `(1, m, n)` for each element in `A` and `b`
      respectively.
+
+## Development installation
+
+If a wheel for your environment does not exist, you can try installing from source:
+
+### Linux
+
+Run the following commands in a **fresh Anaconda environment**:
+```bash
+conda install pytorch cpuonly -c pytorch
+conda install suitesparse scipy
+python setup.py install
+```
+
+### Windows
+First download the Visual Studio Community 2017 installer from [here](https://my.visualstudio.com/Downloads?q=visual%20studio%202017&wt.mc_id=o~msft~vscom~older-downloads).
+During installation, go to **Workloads** and select the following two workloads:
+* Desktop development with C++
+* Python development
+
+Then go to **Individual Components** and select the following additional items:
+* C++/CLI support
+* VC++ 2015.3 v14.00 (v140) toolset for desktop
+
+Then run the following commands *inside* a **x64 Native Tools Command Prompt for VS 2017** in a **fresh Anaconda environment**:
+
+```bash
+conda install pytorch cpuonly -c pytorch
+conda install suitesparse scipy
+python setup.py install
+```
 
 ## License & Credits
 

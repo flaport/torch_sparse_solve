@@ -5,16 +5,19 @@ from torch.utils import cpp_extension
 
 import torch_sparse_solve
 
-usrdir = os.path.dirname(os.path.dirname(os.path.dirname(os.__file__)))
+libroot = os.path.dirname(os.path.dirname(os.__file__))
+if os.name == "nt": # Windows
+    suitesparse_lib = os.path.join(libroot, "Library", "lib")
+    suitesparse_include = os.path.join(libroot, "Library", "include", "suitesparse")
+else: # Linux / Mac OS
+    suitesparse_lib = os.path.join(os.path.dirname(libroot), "lib")
+    suitesparse_include = os.path.join(os.path.dirname(libroot), "include")
 
 torch_sparse_solve_cpp = Extension(
     name="torch_sparse_solve_cpp",
     sources=["torch_sparse_solve.cpp"],
-    include_dirs=[
-        *cpp_extension.include_paths(),
-        os.path.join(usrdir, "include"),
-    ],
-    library_dirs=[*cpp_extension.library_paths(), os.path.join(usrdir, "lib"),],
+    include_dirs=[*cpp_extension.include_paths(), suitesparse_include],
+    library_dirs=[*cpp_extension.library_paths(), suitesparse_lib],
     extra_compile_args=[],
     libraries=[
         "c10",
@@ -26,7 +29,6 @@ torch_sparse_solve_cpp = Extension(
         "amd",
         "colamd",
         "suitesparseconfig",
-        "rt",
     ],
     language="c++",
 )
