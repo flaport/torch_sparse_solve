@@ -2,13 +2,13 @@
 
 import torch
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __author__ = "Floris Laporte"
 __all__ = ["solve"]
 
 
 def solve(A, b):
-    """ solve a sparse system Ax = b
+    """solve a sparse system Ax = b
 
     Args:
         A (torch.sparse.Tensor[b, m, m]): the sparse matrix defining the system.
@@ -59,14 +59,3 @@ class Solve(torch.autograd.Function):
 
         gradA, gradb = solve_backward(grad, A, b, x)
         return gradA, gradb
-
-
-if __name__ == "__main__":
-    A = torch.randn(2, 3, 3, requires_grad=True)
-    b = torch.randn(2, 3, 2)
-    test = torch.autograd.gradcheck(
-        Solve.apply, [A.double(), b.double()]
-    )  # gradcheck requires double precision
-    print(A @ solve(A, b))
-    print(b)
-    print((torch.abs(A @ solve(A, b) - b) < 1e-5).all().item())

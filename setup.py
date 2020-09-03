@@ -6,10 +6,10 @@ from torch.utils import cpp_extension
 import torch_sparse_solve
 
 libroot = os.path.dirname(os.path.dirname(os.__file__))
-if os.name == "nt": # Windows
+if os.name == "nt":  # Windows
     suitesparse_lib = os.path.join(libroot, "Library", "lib")
     suitesparse_include = os.path.join(libroot, "Library", "include", "suitesparse")
-else: # Linux / Mac OS
+else:  # Linux / Mac OS
     suitesparse_lib = os.path.join(os.path.dirname(libroot), "lib")
     suitesparse_include = os.path.join(os.path.dirname(libroot), "include")
 
@@ -33,11 +33,11 @@ torch_sparse_solve_cpp = Extension(
     language="c++",
 )
 
-long_description = (
-    torch_sparse_solve.__doc__
-    if not os.path.exists("readme.md")
-    else open("readme.md", "r").read()
-)
+try:
+    with open("readme.md", "r") as f:
+        long_description = f.read()
+except FileNotFoundError:
+    long_description = torch_sparse_solve.__doc__
 
 setup(
     name="torch_sparse_solve",

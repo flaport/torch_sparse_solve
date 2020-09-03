@@ -65,7 +65,6 @@ std::vector<at::Tensor> _coo_to_csc(int ncol, at::Tensor Ai, at::Tensor Aj, at::
     int* bi = Bi.data_ptr<int>();
     double* bx = Bx.data_ptr<double>();
 
-
     //compute number of non-zero entries per row of A
     for (int n = 0; n < nnz; n++) {
         bp[aj[n]] += 1;
@@ -103,8 +102,9 @@ std::vector<at::Tensor> _coo_to_csc(int ncol, at::Tensor Ai, at::Tensor Aj, at::
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("solve_forward",     &solve_forward,  "solve forward");
-    m.def("solve_backward",    &solve_backward, "solve backward");
-    m.def("_klu_solve",  &_klu_solve,     "sparse solve");
-    m.def("_coo_to_csc", &_coo_to_csc,    "COO to CSC");
+    m.def("solve_forward", &solve_forward, "solve forward");
+    m.def("solve_backward", &solve_backward, "solve backward");
+    m.def("_klu_solve", &_klu_solve, "sparse solve");
+    m.def("_coo_to_csc", &_coo_to_csc, "COO to CSC");
 }
+

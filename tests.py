@@ -41,7 +41,8 @@ def test_result(A, b):
     x = torch_sparse_solve.solve(A, b)
     b2 = torch.bmm(A.to_dense(), x)
     numpy.testing.assert_almost_equal(
-        b2.data.cpu().numpy(), b.data.cpu().numpy(),
+        b2.data.cpu().numpy(),
+        b.data.cpu().numpy(),
     )
 
 
@@ -56,7 +57,12 @@ def test_comparison_with_torch_solve(A, b):
 
 def test_coo_to_csc():
     A = torch.tensor(
-        [[0, 0, 0, 0], [5, 8, 0, 0], [0, 0, 3, 0], [0, 6, 0, 0],],
+        [
+            [0, 0, 0, 0],
+            [5, 8, 0, 0],
+            [0, 0, 3, 0],
+            [0, 6, 0, 0],
+        ],
         dtype=torch.float64,
         device="cpu",
     )
