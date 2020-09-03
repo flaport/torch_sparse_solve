@@ -13,14 +13,6 @@ C-arrays and hence is only available for PyTorch CPU
 tensors. However, for large, sparse enough tensors, it might still be
 worth doing the GPU→CPU conversion.
 
-## Installation
-
-So far, wheels only exist for Python 3.7 on Windows and Linux:
-
-```bash
-pip install torch_sparse_solve
-```
-
 ## Usage
 
 The `torch_sparse_solve` library provides a single function `solve(A, b)`, which solves for `x` in the **batched matrix × batched matrix**
@@ -59,35 +51,63 @@ There are two major caveats you should be aware of when using
      with shapes `(1, m, m)` and `(1, m, n)` for each element in `A` and `b`
      respectively.
 
-## Development installation
+## Installation
 
-If a wheel for your environment does not exist, you can try installing from source:
+The library can be installed with `pip`:
+
+```bash
+pip install torch_sparse_solve
+```
+
+Please note that no pre-built wheels exist. This means that `pip` will
+attempt to install the library from source. Make sure you have the
+necessary dependencies installed for your OS.
+
+## Dependencies
 
 ### Linux
 
-Run the following commands in a **fresh Anaconda environment**:
+On Linux, having PyTorch, scipy and suitesparse installed is often
+enough to be able install the library (along with the typical
+developer tools for your distribution). Run the following inside a
+conda environment:
+
 ```bash
-conda install pytorch cpuonly -c pytorch
 conda install suitesparse scipy
-python setup.py install
+conda install pytorch -c pytorch
+pip install torch_sparse_solve
 ```
 
 ### Windows
-First download the Visual Studio Community 2017 installer from [here](https://my.visualstudio.com/Downloads?q=visual%20studio%202017&wt.mc_id=o~msft~vscom~older-downloads).
-During installation, go to **Workloads** and select the following two workloads:
-* Desktop development with C++
-* Python development
 
-Then go to **Individual Components** and select the following additional items:
-* C++/CLI support
-* VC++ 2015.3 v14.00 (v140) toolset for desktop
+On Windows, the installation process is a bit more involved as
+typically the build dependencies are not installed. To install those,
+download **Visual Studio Community 2017** from
+[here](https://my.visualstudio.com/Downloads?q=visual%20studio%202017&wt.mc_id=o~msft~vscom~older-downloads).
+During installation, go to **Workloads** and select the following
+workloads:
 
-Then run the following commands *inside* a **x64 Native Tools Command Prompt for VS 2017** in a **fresh Anaconda environment**:
+- Desktop development with C++
+- Python development
+
+Then go to **Individual Components** and select the following
+additional items:
+
+- C++/CLI support
+- VC++ 2015.3 v14.00 (v140) toolset for desktop
+
+Then, download and install Microsoft Visual C++ Redistributable from
+[here](https://aka.ms/vs/16/release/vc_redist.x64.exe).
+
+After these installation steps, run the following commands _inside_ a
+**x64 Native Tools Command Prompt for VS 2017**, after activating your
+conda environment:
 
 ```bash
-conda install pytorch cpuonly -c pytorch
+set DISTUTILS_USE_SDK=1
 conda install suitesparse scipy
-python setup.py install
+conda install pytorch -c pytorch
+pip install torch_sparse_solve
 ```
 
 ## License & Credits
@@ -99,3 +119,4 @@ This library was partly based on:
 - [SuiteSparse](https://github.com/DrTimothyAldenDavis/SuiteSparse), LGPL-2.1
 - [kagami-c/PyKLU](https://github.com/kagami-c/PyKLU), LGPL-2.1
 - [scipy.sparse](https://github.com/scipy/scipy/tree/master/scipy/sparse), BSD-3
+
