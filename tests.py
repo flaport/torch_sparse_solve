@@ -33,7 +33,7 @@ def b(gen):
 
 def test_gradcheck(A, b):
     """ check if backward grads are correct """
-    torch.autograd.gradcheck(torch_sparse_solve.solve, [A, b], check_sparse_nnz=True)
+    torch.autograd.gradcheck(torch_sparse_solve.solve, [A, b], check_sparse_nnz=True, check_undefined_grad=False)
 
 
 def test_result(A, b):
