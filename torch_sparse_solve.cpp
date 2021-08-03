@@ -29,7 +29,7 @@ std::vector<at::Tensor> solve_backward(at::Tensor grad, at::Tensor A, at::Tensor
     std::vector<at::Tensor>  gradA_list;
     for (int i=0; i<batch_size; i++) {
         at::Tensor indices = A[i].coalesce()._indices();
-        at::Tensor gradA_tmp = at::sparse_coo_tensor(indices, -(gradb.index({i, indices.index({0}), 0}) * x.index({i, indices.index({1}), 0}))).unsqueeze(0);
+        at::Tensor gradA_tmp = at::sparse_coo_tensor(indices, -at::sum((gradb.index({i, indices.index({0})}) * x.index({i, indices.index({1})})), -1)).unsqueeze(0);
         gradA_list.push_back(gradA_tmp);
     }
     at::Tensor gradA = at::cat(gradA_list, 0);
