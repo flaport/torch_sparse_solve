@@ -24,12 +24,16 @@ at::Tensor solve_forward(at::Tensor A, at::Tensor b) {
 }
 
 std::vector<at::Tensor> solve_backward(at::Tensor grad, at::Tensor A, at::Tensor b, at::Tensor x) {
-    at::Tensor gradb = solve_forward(at::transpose(A, -1, -2), grad);
-    at::Tensor gradA = (-at::bmm(gradb, at::transpose(x, -1, -2)));
-    at::Tensor gradA_i = A.indices();
-    at::Tensor gradA_v = gradA.index({gradA_i[0], gradA_i[1], gradA_i[2]});
-    at::Tensor gradA_sp = at::sparse_coo_tensor(gradA_i, gradA_v, {at::size(A, 0), at::size(A, 1), at::size(A, 2)});
-    return {gradA_sp, gradb};
+    at::Tensor gradb = solve_forward(A.transpose(1,2).coalesce(), grad);
+    int batch_size = A.size(0);
+    std::vector<at::Tensor>  gradA_list;
+    for (int i=0; i<batch_size; i++) {
+        at::Tensor indices = A[i].coalesce()._indices();
+        at::Tensor gradA_tmp = at::sparse_coo_tensor(indices, -(gradb.index({i, indices.index({0}), 0}) * x.index({i, indices.index({1}), 0}))).unsqueeze(0);
+        gradA_list.push_back(gradA_tmp);
+    }
+    at::Tensor gradA = at::cat(gradA_list, 0);
+    return {gradA, gradb};
 }
 
 void _klu_solve(at::Tensor Ap, at::Tensor Ai, at::Tensor Ax, at::Tensor b) {
