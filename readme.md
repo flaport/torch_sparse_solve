@@ -44,12 +44,16 @@ There are two major caveats you should be aware of when using
 
 - `A` should have the same sparsity pattern for every element in the batch.
   If this is not the case, you have two options:
+
   1. Create a new sparse matrix with the same sparsity pattern for
      every element in the batch by adding zeros to the sparse
      representation.
   2. **OR** loop over the batch dimension and solve sequentially, i.e.
      with shapes `(1, m, m)` and `(1, m, n)` for each element in `A` and `b`
      respectively.
+
+- `solve` is differentiable, but only for the non-zero elements of `A` (which in most
+  cases is what you want anyway).
 
 ## Installation
 
@@ -119,4 +123,3 @@ This library was partly based on:
 - [SuiteSparse](https://github.com/DrTimothyAldenDavis/SuiteSparse), LGPL-2.1
 - [kagami-c/PyKLU](https://github.com/kagami-c/PyKLU), LGPL-2.1
 - [scipy.sparse](https://github.com/scipy/scipy/tree/master/scipy/sparse), BSD-3
-
